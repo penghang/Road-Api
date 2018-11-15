@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <context id="OracleContext" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
+
+        <jdbcConnection driverClass="oracle.jdbc.OracleDriver"
+                        connectionURL="jdbc:oracle:thin:@192.168.1.79:1521:ney"
+                        userId="dml_dlsy_platform"
+                        password="intest">
+        </jdbcConnection>
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="false"/>
+        </javaTypeResolver>
+        <!-- 对于生成的pojo所在包 -->
+        <javaModelGenerator targetPackage="com.intest.road.pojo" targetProject="src/main/java"/>
+
+        <!-- 对于生成的mapper所在目录 -->
+        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources"/>
+
+        <!-- 配置mapper对应的java映射 -->
+        <javaClientGenerator targetPackage="com.intest.road.mapper" targetProject="src/main/java"
+                             type="XMLMAPPER"/>
+
+
+        <!--<table tableName="X_FIELD_ROAD" domainObjectName="FieldRoad"></table>-->
+        <!--<table tableName="X_FIELD_ROAD_LAND" domainObjectName="FieldRoadLand"></table>-->
+        <table tableName="X_FIELD_LOCATION" domainObjectName="FieldRoadLocation">
+            <columnOverride column="LAT" javaType="Double" />
+            <columnOverride column="LNG" javaType="Double" />
+            <columnOverride column="SEQ" javaType="Integer" />
+        </table>
+
+    </context>
+</generatorConfiguration>

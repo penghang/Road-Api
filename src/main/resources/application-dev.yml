@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@192.168.1.79:1521:ney
+    username: dml_dlsy_platform
+    password: intest
+    driver-class-name: oracle.jdbc.OracleDriver
+    druid:
+      initial-size: 1
+      min-idle: 1
+      max-active: 20
+      test-on-borrow: true
+      stat-view-servlet:
+        allow: true
+bright-map: #晶众地图配置
+  url: http://127.0.0.1:8080
+  road-info: "${bright-map.url}/MapServer/RoadInfos"

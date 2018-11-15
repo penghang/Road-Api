@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: prod
+server:
+  port: 8081
+road:
+  map-address: http://192.168.133.91:82/arcgis/rest/services/xiangyang_GDtile/MapServer?f=jsapi
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.intest.road.pojo
