@@ -5,7 +5,7 @@ import com.intest.road.enums.ResultEnum;
 import com.intest.road.exception.RoadException;
 import com.intest.road.pojo.*;
 import com.intest.road.properties.BrightMapProperties;
-import com.intest.road.properties.RoadProperties;
+import com.intest.road.utils.FileUtil;
 import com.intest.road.utils.HttpClientUtil;
 import com.intest.road.utils.JsonUtil;
 import org.slf4j.Logger;
@@ -25,18 +25,6 @@ public class RoadApiService {
 
     @Autowired
     private PolygonService polygonService;
-
-    @Autowired
-    private RoadProperties roadProperties;
-
-    @Autowired
-    private FieldRoadService fieldRoadService;
-
-    @Autowired
-    private FieldRoadLandService fieldRoadLandService;
-
-    @Autowired
-    private FieldRoadLocationService fieldRoadLocationService;
 
     private BrightMapProperties brightMapProperties;
 
@@ -129,8 +117,14 @@ public class RoadApiService {
         for (int i = 0; i < roadInfoList.size(); i++) {
             BrightMapRoadInfo roadInfo = roadInfoList.get(i);
             double[] point = new double[]{lng, lat};
-            if (polygonService.isPointInPolygon(point, roadInfo.getRoadBound())){
-                return roadInfo.getRoadName();
+            BrightMapLandInfo[] brightMapLandInfos = roadInfo.getLandList();
+            for (int j = 0; j < brightMapLandInfos.length; j++) {
+                ArrayList<double[][]> boundList = brightMapLandInfos[j].getLandBound();
+                for (int k = 0; k < boundList.size(); k++) {
+                    if (polygonService.isPointInPolygon(point, boundList.get(k))) {
+                        return roadInfo.getRoadName();
+                    }
+                }
             }
         }
         return "";
@@ -140,16 +134,28 @@ public class RoadApiService {
      * 获取道路列表
      * @return
      */
-    public List<FieldRoad> getRoads() {
-        return fieldRoadService.queryList();
+    public List<String> getRoads() {
+        ArrayList<String> roads = new ArrayList<>();
+        roadInfoList.forEach(roadInfo -> {
+            roads.add(roadInfo.getRoadName());
+        });
+        return roads;
     }
 
     /**
      * 获取道路列表
      * @return
      */
-    public List<FieldRoad> getRoads(short roadType) {
-        return fieldRoadService.queryList(roadType);
+    public String[] getByroads() {
+
+        String filePath = getFilePath("byroad");
+        String content = FileUtil.readTxtFile(filePath);
+        return content.split("\r\n");
+    }
+
+    public boolean setByroads(String names) {
+        String filePath = getFilePath("byroad");
+        return FileUtil.writeFile(filePath, names.replace(",","\r\n"));
     }
 
     /**
@@ -157,14 +163,13 @@ public class RoadApiService {
      * @return
      */
     public String getMapAddress() {
-        return roadProperties.getMapAddress();
+        String filePath = getFilePath("map-address");
+        return FileUtil.readTxtFile(filePath);
     }
 
-    /**
-     * 从晶众地图API同步数据
-     */
-    public void sync() {
-        fieldRoadService.sync(roadInfoList);
+    public Object setMapAddress(String url) {
+        String filePath = getFilePath("map-address");
+        return FileUtil.writeFile(filePath, url);
     }
 
     public boolean loadFromBrightMap() {
@@ -175,76 +180,8 @@ public class RoadApiService {
         return getStatus();
     }
 
-    public boolean loadFromDB() {
-        List<BrightMapRoadInfo> brightMapRoadInfoList = loadRoadInfoFromDB();
-        if (status) {
-            roadInfoList = brightMapRoadInfoList;
-        }
-        return getStatus();
-    }
-
-    public List<BrightMapRoadInfo> loadRoadInfoFromDB() {
-        logger.info("从数据库获取道路坐标");
-        List<BrightMapRoadInfo> brightMapRoadInfoList = new ArrayList<>();
-        List<FieldRoad> fieldRoadList = fieldRoadService.queryList();
-        fieldRoadList.forEach(fieldRoad -> {
-            BrightMapRoadInfo brightMapRoadInfo = new BrightMapRoadInfo();
-            // 设置道路名称
-            brightMapRoadInfo.setRoadName(fieldRoad.getRoadName());
-
-            // 设置车道
-            List<FieldRoadLand> fieldRoadLandList = fieldRoadLandService.queryList(fieldRoad.getId());
-            BrightMapLandInfo[] brightMapLandInfos = new BrightMapLandInfo[fieldRoadLandList.size()];
-            for (int i = 0; i < fieldRoadLandList.size(); i++) {
-                FieldRoadLand fieldRoadLand = fieldRoadLandList.get(i);
-                BrightMapLandInfo brightMapLandInfo = new BrightMapLandInfo();
-                brightMapLandInfo.setLandName(fieldRoadLand.getLandName());
-
-                // 设置边界坐标
-                List<FieldRoadLocation> locations = fieldRoadLocationService.queryList(fieldRoadLand.getId(), (short)2);
-                ArrayList<double[][]> landBounds = new ArrayList<>();
-
-                Short lastGroupId;
-                int size = locations.size();
-                for (int j = 0; j < size;) {
-                    FieldRoadLocation location = locations.get(j);
-                    Short groupId = location.getGroupId();
-                    lastGroupId = groupId;
-                    ArrayList<double[]> groupBounds = new ArrayList<>();
-                    while (groupId.equals(lastGroupId)) {
-                        double[] point = {location.getLng(), location.getLat()};
-                        groupBounds.add(point);
-                        j++;
-                        if (j >= size) {
-                            break;
-                        } else {
-                            location = locations.get(j);
-                            groupId = location.getGroupId();
-                        }
-                    }
-
-                    landBounds.add(groupBounds.toArray(new double[groupBounds.size()][2]));
-                }
-                brightMapLandInfo.setLandBound(landBounds);
-                brightMapLandInfos[i] = brightMapLandInfo;
-            }
-            brightMapRoadInfo.setLandList(brightMapLandInfos);
-
-            // 设置边界坐标
-            List<FieldRoadLocation> locations = fieldRoadLocationService.queryList(fieldRoad.getId(), (short)1);
-            double[][] roadBounds = new double[locations.size()][2];
-            for (int i = 0; i < locations.size(); i++) {
-                roadBounds[i][0] = locations.get(i).getLng();
-                roadBounds[i][1] = locations.get(i).getLat();
-            }
-            brightMapRoadInfo.setRoadBound(roadBounds);
-            brightMapRoadInfoList.add(brightMapRoadInfo);
-        });
-        if (brightMapRoadInfoList.size() > 0) {
-            status = true;
-        } else {
-            status = false;
-        }
-        return brightMapRoadInfoList;
+    private String getFilePath(String fileName) {
+        String path = this.getClass().getClassLoader().getResource("").getPath();
+        return path + "/conf/" + fileName;
     }
 }

@@ -1,6 +1,5 @@
 package com.intest.road;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -12,7 +11,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * @date 2018/11/8
  */
 @SpringBootApplication
-@MapperScan(basePackages = "com.intest.road.mapper")
 @ServletComponentScan
 public class RoadApplication extends SpringBootServletInitializer {
 
