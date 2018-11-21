@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,17 +98,6 @@ public class RoadApiService {
         }
         throw new RoadException(ResultEnum.UNKNOWN_ROAD);
     }
-    /**
-     * 根据道路id获取道路信息
-     * @param id
-     * @return
-     */
-    public BrightMapRoadInfo getRoadInfo(Integer id) {
-        if (id >= 0 && id < roadInfoList.size()) {
-            return roadInfoList.get(id);
-        }
-        throw new RoadException(ResultEnum.UNKNOWN_ROAD);
-    }
 
     /**
      * 通过经纬度查询道路信息
@@ -117,15 +109,18 @@ public class RoadApiService {
         for (int i = 0; i < roadInfoList.size(); i++) {
             BrightMapRoadInfo roadInfo = roadInfoList.get(i);
             double[] point = new double[]{lng, lat};
-            BrightMapLandInfo[] brightMapLandInfos = roadInfo.getLandList();
-            for (int j = 0; j < brightMapLandInfos.length; j++) {
-                ArrayList<double[][]> boundList = brightMapLandInfos[j].getLandBound();
-                for (int k = 0; k < boundList.size(); k++) {
-                    if (polygonService.isPointInPolygon(point, boundList.get(k))) {
-                        return roadInfo.getRoadName();
-                    }
-                }
+            if (polygonService.isPointInPolygon(point, roadInfo.getRoadBound())) {
+                return roadInfo.getRoadName();
             }
+            // BrightMapLandInfo[] landList = roadInfo.getLandList();
+            // for (int j = 0; j < landList.length; j++) {
+            //     ArrayList<double[][]> boundList = landList[j].getLandBound();
+            //     for (int k = 0; k < boundList.size(); k++) {
+            //         if (polygonService.isPointInPolygon(point, boundList.get(k))) {
+            //             return roadInfo.getRoadName();
+            //         }
+            //     }
+            // }
         }
         return "";
     }
@@ -180,8 +175,15 @@ public class RoadApiService {
         return getStatus();
     }
 
-    private String getFilePath(String fileName) {
-        String path = this.getClass().getClassLoader().getResource("").getPath();
-        return path + "/conf/" + fileName;
+    public String getFilePath(String fileName) {
+        URL url = this.getClass().getClassLoader().getResource("");
+        String path = url.getPath();
+        try {
+            path = url.toURI().getPath();
+        }
+        catch (URISyntaxException e) {
+            logger.error("路径转换失败", e);
+        }
+        return path + "conf/" + fileName;
     }
 }

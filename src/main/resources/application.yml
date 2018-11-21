@@ -3,3 +3,5 @@ spring:
     active: dev
 server:
   port: 8081
+logging:
+  config: classpath:conf/logback-spring.xml

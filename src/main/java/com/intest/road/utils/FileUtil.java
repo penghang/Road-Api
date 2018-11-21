@@ -11,10 +11,10 @@ import java.io.*;
  */
 public class FileUtil {
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
+    private static String encoding = "UTF-8";
     public static String readTxtFile(String filePath) {
         StringBuilder content = new StringBuilder();
         try {
-            String encoding = "UTF-8";
             File file = new File(filePath);
             // 获取父目录
             File fileParent = file.getParentFile();
@@ -36,6 +36,8 @@ public class FileUtil {
                     content.append(lineText);
                 }
                 read.close();
+            } else {
+                logger.info("文件不存在{}", filePath);
             }
         }
         catch (IOException e) {
@@ -57,10 +59,9 @@ public class FileUtil {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file.getAbsoluteFile());
-            bw = new BufferedWriter(fw);
-            bw.write(content);
-            bw.close();
+            OutputStreamWriter streamWriter = new OutputStreamWriter(new FileOutputStream(file), encoding);
+            streamWriter.write(content);
+            streamWriter.close();
             return true;
         } catch (IOException e) {
             logger.error("写入文件失败", e);

@@ -51,7 +51,7 @@ public class RoadApiController {
      * 从晶众地图加载数据
      * @return
      */
-    @GetMapping(value = "/load/bm")
+    @GetMapping(value = "/reload")
     public Result loadFromBrightMap() {
         return ResultUtil.success(roadApiService.loadFromBrightMap());
     }
