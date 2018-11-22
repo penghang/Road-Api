@@ -122,7 +122,7 @@ public class RoadApiService {
             //     }
             // }
         }
-        return "";
+        throw new RoadException(ResultEnum.UNKNOWN_ROAD);
     }
 
     /**

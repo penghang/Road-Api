@@ -1,6 +1,7 @@
 package com.intest.road.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author PengHang
@@ -10,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class BrightMapRoadInfo {
     private String roadName;
     private double[][] roadBound;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private BrightMapLandInfo[] landList;
 
     public String getRoadName() {
