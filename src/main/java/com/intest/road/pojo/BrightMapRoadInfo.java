@@ -12,7 +12,7 @@ public class BrightMapRoadInfo {
     private String roadName;
     private double[][] roadBound;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private BrightMapLandInfo[] landList;
 
     public String getRoadName() {

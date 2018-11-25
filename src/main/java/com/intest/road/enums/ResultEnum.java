@@ -17,7 +17,8 @@ public enum ResultEnum {
      * key错误
      */
     KEY_ERROR(1, "key错误"),
-    UNKNOWN_ROAD(2, "未找到道路")
+    UNKNOWN_ROAD(2, "未找到道路"),
+    PARAMS_ERROR(3, "参数错误")
     ;
     private Integer code;
     private String msg;

@@ -112,8 +112,8 @@ public class RoadApiController {
      * @return
      */
     @PostMapping(value = "/byroads")
-    public Result<Boolean> setByroads(@RequestParam("names") String names) {
-        return ResultUtil.success(roadApiService.setByroads(names));
+    public Result<Boolean> setByroads(@RequestParam("key") String key, @RequestParam("names") String names) {
+        return ResultUtil.success(roadApiService.setByroads(key, names));
     }
 
     /**
@@ -126,7 +126,7 @@ public class RoadApiController {
     }
 
     @PostMapping(value = "/mapAddress")
-    public Result<Boolean> setMapAddress(@RequestParam("url") String url) {
-        return ResultUtil.success(roadApiService.setMapAddress(url));
+    public Result<Boolean> setMapAddress(@RequestParam("key") String key, @RequestParam("url") String url) {
+        return ResultUtil.success(roadApiService.setMapAddress(key, url));
     }
 }

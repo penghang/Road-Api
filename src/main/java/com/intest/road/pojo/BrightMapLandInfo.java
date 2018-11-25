@@ -12,15 +12,15 @@ import java.util.ArrayList;
 public class BrightMapLandInfo {
     private String landName;
 
-    public ArrayList<double[][]> getLandBound() {
+    private double[][] landBound;
+
+    public double[][] getLandBound() {
         return landBound;
     }
 
-    public void setLandBound(ArrayList<double[][]> landBound) {
+    public void setLandBound(double[][] landBound) {
         this.landBound = landBound;
     }
-
-    private ArrayList<double[][]> landBound;
 
     public String getLandName() {
         return landName;

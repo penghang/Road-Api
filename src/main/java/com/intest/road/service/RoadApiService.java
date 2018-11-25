@@ -81,6 +81,7 @@ public class RoadApiService {
      * @return
      */
     public List<BrightMapRoadInfo> getRoadsInfo() {
+        checkDataSource();
         return roadInfoList;
     }
 
@@ -90,6 +91,7 @@ public class RoadApiService {
      * @return
      */
     public BrightMapRoadInfo getRoadInfo(String roadName) {
+        checkDataSource();
         for (int i = 0; i < roadInfoList.size(); i++) {
             BrightMapRoadInfo roadInfo = roadInfoList.get(i);
             if (roadInfo.getRoadName().equals(roadName)) {
@@ -106,21 +108,19 @@ public class RoadApiService {
      * @return
      */
     public String getRoadName(double lat, double lng) {
+        checkDataSource();
         for (int i = 0; i < roadInfoList.size(); i++) {
             BrightMapRoadInfo roadInfo = roadInfoList.get(i);
             double[] point = new double[]{lng, lat};
-            if (polygonService.isPointInPolygon(point, roadInfo.getRoadBound())) {
-                return roadInfo.getRoadName();
-            }
-            // BrightMapLandInfo[] landList = roadInfo.getLandList();
-            // for (int j = 0; j < landList.length; j++) {
-            //     ArrayList<double[][]> boundList = landList[j].getLandBound();
-            //     for (int k = 0; k < boundList.size(); k++) {
-            //         if (polygonService.isPointInPolygon(point, boundList.get(k))) {
-            //             return roadInfo.getRoadName();
-            //         }
-            //     }
+            // if (polygonService.isPointInPolygon(point, roadInfo.getRoadBound())) {
+            //     return roadInfo.getRoadName();
             // }
+            BrightMapLandInfo[] landList = roadInfo.getLandList();
+            for (int j = 0; j < landList.length; j++) {
+                if (polygonService.isPointInPolygon(point, landList[j].getLandBound())) {
+                    return roadInfo.getRoadName();
+                }
+            }
         }
         throw new RoadException(ResultEnum.UNKNOWN_ROAD);
     }
@@ -130,6 +130,7 @@ public class RoadApiService {
      * @return
      */
     public List<String> getRoads() {
+        checkDataSource();
         ArrayList<String> roads = new ArrayList<>();
         roadInfoList.forEach(roadInfo -> {
             roads.add(roadInfo.getRoadName());
@@ -142,13 +143,14 @@ public class RoadApiService {
      * @return
      */
     public String[] getByroads() {
-
+        checkDataSource();
         String filePath = getFilePath("byroad");
         String content = FileUtil.readTxtFile(filePath);
         return content.split("\r\n");
     }
 
-    public boolean setByroads(String names) {
+    public boolean setByroads(String key, String names) {
+        checkKey(key);
         String filePath = getFilePath("byroad");
         return FileUtil.writeFile(filePath, names.replace(",","\r\n"));
     }
@@ -162,7 +164,8 @@ public class RoadApiService {
         return FileUtil.readTxtFile(filePath);
     }
 
-    public Object setMapAddress(String url) {
+    public boolean setMapAddress(String key, String url) {
+        checkKey(key);
         String filePath = getFilePath("map-address");
         return FileUtil.writeFile(filePath, url);
     }
@@ -175,6 +178,15 @@ public class RoadApiService {
         return getStatus();
     }
 
+    /**
+     * 检测数据源
+     */
+    private void checkDataSource() {
+        if (!status) {
+            loadFromBrightMap();
+        }
+    }
+
     public String getFilePath(String fileName) {
         URL url = this.getClass().getClassLoader().getResource("");
         String path = url.getPath();
@@ -185,5 +197,12 @@ public class RoadApiService {
             logger.error("路径转换失败", e);
         }
         return path + "conf/" + fileName;
+    }
+
+    private void checkKey(String key) {
+        final String KEY = "intest";
+        if (!key.equals(KEY)) {
+            throw new RoadException(ResultEnum.KEY_ERROR);
+        }
     }
 }
